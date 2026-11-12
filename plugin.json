@@ -1,0 +1,22 @@
+{
+  "id": "neodex.cataclysme",
+  "name": "Cataclysme",
+  "version": "1.0.0",
+  "author": "NDesumeur",
+  "description": "Jeu de destruction de planètes en pixel art : chaque planète est faite de milliers de pixels (croûte, roche, magma, noyau) et chaque pixel arraché devient un débris soumis à la gravité. Astéroïdes, comètes qui traversent, bombes à retardement et trous noirs, en quantité limitée : sept planètes à détruire, trois étoiles chacune.",
+  "icon": "icon.png",
+  "entry": "index.js",
+  "view": "cataclysme",
+  "neobase": ">=4.0.0",
+  "type": "app",
+  "category": "Jeux",
+  "syncMode": "progression",
+  "syncInfo": "Record.",
+  "mobile": false,
+  "system": false,
+  "dependencies": {},
+  "sdk": "2.1.0",
+  "permissions": [
+    "storage"
+  ]
+}
