@@ -1,18 +1,22 @@
 // Cataclysme : détruire des planètes en pixels avec des astéroïdes, des comètes, des bombes et des trous noirs.
 // Jeu NeoDex en pixel art dessiné à la main (police bitmap, cadres et boutons en pixels). Il tourne dans le bac à sable de NeoDex.
 const HTML = `<div class="appWrap wide">
-  <div class="agHead"><span class="label">Cataclysme</span><span class="hint">glisser : lancer · 1 à 4 : arme · flèches, A / E et Espace : viser au clavier · P : pause</span></div>
+  <div class="agHead"><span class="label">Cataclysme</span><span class="hint">glisser : lancer · 1 à 4 : arme · flèches, A / E et Espace : viser au clavier · manette · P : pause</span></div>
   <div class="gMain"><div class="gameBox"><canvas id="ctCanvas" width="240" height="150" role="img" aria-label="Cataclysme"></canvas></div>
     <div class="gSide">
       <div class="sysCard"><b>RECORDS</b><div class="gStats" id="ctStats"></div></div>
-      <div class="row"><button class="btn main" id="ctNew">NOUVELLE PARTIE</button></div>
-      <div class="hint">Appuie dans l'espace, tire en arrière comme un lance-pierre et lâche : les pointillés montrent la trajectoire, courbée par la gravité. Chaque pixel arraché devient un débris : lent, il retombe et se recolle ; rapide, il part dans l'espace. Plus la planète maigrit, moins elle attire. La comète traverse, la bombe se pose puis explose, le trou noir avale tout ce qui l'approche. Une étoile ouvre la planète suivante. Au clavier : flèches pour le viseur, A et E pour l'angle, Espace maintenu pour la puissance.</div>
+      <div class="row"><button class="btn main" id="ctNew">NOUVELLE PARTIE</button><button class="btn" id="ctFs">PLEIN ÉCRAN</button></div>
+      <div class="row"><button class="btn" id="ctSand" aria-pressed="false">BAC À SABLE : NON</button></div>
+      <div class="hint">Appuie dans l'espace, tire en arrière comme un lance-pierre et lâche : les pointillés montrent la trajectoire, courbée par la gravité. Chaque pixel arraché devient un débris : lent, il retombe et se recolle ; rapide, il part dans l'espace. Plus la planète maigrit, moins elle attire. La comète traverse, la bombe se pose puis explose, le trou noir avale tout ce qui l'approche. Une étoile ouvre la planète suivante. Au clavier : flèches pour le viseur, A et E pour l'angle, Espace maintenu pour la puissance. À la manette : stick gauche ou croix pour le viseur, stick droit ou LB / RB pour l'angle, A maintenu pour la puissance, X pour changer d'arme, Start pour la pause.</div>
+      <div class="hint">Bac à sable : toutes les armes à volonté sur toutes les planètes, pour le plaisir ; ni étoiles ni record.</div>
     </div></div>
 </div>`;
 const CSS = `.gMain{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
-.gameBox{display:grid;place-items:center;padding:10px;background:#05010b;flex:0 0 auto;position:relative}
-.gameBox canvas{height:min(72vh,600px);width:auto;aspect-ratio:240/150;image-rendering:pixelated;cursor:var(--cp,pointer);touch-action:none}
-.gSide{display:flex;flex-direction:column;gap:14px;flex:1;min-width:250px;max-width:420px}
+.gameBox{display:grid;place-items:center;padding:10px;background:#05010b;flex:2 1 560px;min-width:min(100%,560px);position:relative}
+.gameBox canvas{width:min(100%,max(320px,calc((100vh - 200px) * 240 / 150)));height:auto;aspect-ratio:240/150;image-rendering:pixelated;cursor:var(--cp,pointer);touch-action:none}
+.gameBox:fullscreen{padding:0;display:grid;place-items:center}
+.gameBox:fullscreen canvas{width:min(100vw,calc(100vh * 240 / 150))}
+.gSide{display:flex;flex-direction:column;gap:14px;flex:0 1 320px;min-width:250px}
 .gSide .sysCard{display:flex;flex-direction:column}
 .gStats{display:grid;grid-template-columns:1fr auto;gap:4px 14px}
 .gStats b{text-align:right}`;
@@ -54,7 +58,7 @@ const PXK = (() => {
     '←': '..... ..#.. .#... ##### .#... ..#.. .....', '↑': '..#.. .###. #.#.# ..#.. ..#.. ..#.. ..#..', '↓': '..#.. ..#.. ..#.. ..#.. #.#.# .###. ..#..',
     '*': '..... #.#.# .###. ##### .###. #.#.# .....', '[': '## #. #. #. #. #. ##', ']': '## .# .# .# .# .# ##', '|': '# # # # # # #',
     '@': '.###. #...# #.### #.#.# #.### #.... .###.', '€': '..### .#... ####. .#... ####. .#... ..###', '$': '..#.. .#### #.#.. .###. ..#.# ####. ..#..',
-    '°': '.#. #.# .#. ... ... ... ...', '~': '..... ..... .#..# #.##. ..... ..... .....', '♪': '..##. ..#.# ..#.. ..#.. .##.. ###.. .#...',
+    '°': '.#. #.# .#. ... ... ... ...', '~': '..... ..... .#..# #.##. ..... ..... .....', '∞': '....... ....... .##.##. #..#..# .##.##. ....... .......', '♪': '..##. ..#.# ..#.. ..#.. .##.. ###.. .#...',
   };
   const ACC = { a: ['..#', '.#.'], g: ['#..', '.#.'], c: ['.#.', '#.#'], d: ['...', '#.#'], t: ['.#.#', '#.#.'], z: ['.#.', '##.'] };  // aigu, grave, circonflexe, tréma, tilde, cédille
   const COMP = { é: 'ea', è: 'eg', ê: 'ec', ë: 'ed', á: 'aa', à: 'ag', â: 'ac', ä: 'ad', í: 'ıa', ì: 'ıg', î: 'ıc', ï: 'ıd', ó: 'oa', ò: 'og', ô: 'oc', ö: 'od',
@@ -321,11 +325,11 @@ const pxFont = (g, text, x, y, color, size = 8, align = 'left') => { const s = P
 /* ---------- Cataclysme : une planète en pixels au milieu de l'écran. Lance-lui des astéroïdes, des comètes, des bombes et des trous noirs :
    chaque pixel arraché devient un débris qui retombe ou s'échappe selon sa vitesse, et la planète attire moins à mesure qu'elle maigrit.
    Détruis assez de planète avec ce qu'on te donne : sept planètes, trois étoiles chacune ---------- */
-const CT = {W: 240, H: 150, CX: 120, CY: 82, TOP: 14, VMAX: 4.2, G: .035, SETTLE: 240, CAP: 4500};
+const CT = {W: 240, H: 150, CX: 120, CY: 82, TOP: 14, VMAX: 4.2, G: .035, SETTLE: 240, CAP: 4500, SLOW: 170};
 // une nouvelle partie garde le même objet : la boucle du jeu (gameLoop) continue de tourner dessus
 const renew = (old, o) => { if (!old) return o; for (const k of Object.keys(old)) if (k !== 'raf') delete old[k]; return Object.assign(old, o); };
 const cts = gstore('cataclysme', {best: {}, stars: {}, wins: 0, games: 0, level: 0});
-let ct = null, ctac = null, ctMute = false;
+let ct = null, ctac = null, ctMute = false, ctSandOn = false;  // ctSandOn : le bac à sable, pour la partie en cours (pas enregistré)
 function ctSound(kind, size = 1) {
   if (ctMute) return;
   try {
@@ -369,7 +373,8 @@ const CT_LEVELS = [
   {name: 'Azur', r: 44, layers: [[1, 8], [.88, 2], [.58, 3], [.28, 4]], w: {ast: 3, com: 2, bomb: 2, hole: 1}, land: 9, goals: [40, 50, 58]},
   {name: 'Titan', r: 52, layers: [[1, 11], [.9, 1], [.75, 2], [.55, 3], [.36, 4]], w: {ast: 4, com: 3, bomb: 3, hole: 2}, goals: [40, 50, 60]},
 ];
-const ctUnlocked = li => li === 0 || (cts.stars[li - 1] || 0) >= 1;
+const ctUnlocked = li => li === 0 || ctSandOn || (cts.stars[li - 1] || 0) >= 1;
+const ctHas = w => ct.sand || ct.L.w[w] != null;  // les armes de cette partie (toutes au bac à sable)
 // une couleur #rrggbb, assombrie ou éclaircie, rangée comme un pixel d'ImageData (petit-boutiste : 0xAABBGGRR)
 const ctPack = (hex, f = 1) => { const v = i => Math.max(0, Math.min(255, Math.round(parseInt(hex.slice(i, i + 2), 16) * f))); return (255 << 24 | v(5) << 16 | v(3) << 8 | v(1)) >>> 0; };
 const ctMix = (a, b, t) => { const c = (s, k) => (a >>> s & 255) * (1 - t) + (b >>> s & 255) * t; return (255 << 24 | c(16) << 16 | c(8) << 8 | c(0)) >>> 0; };
@@ -378,12 +383,12 @@ function ctNoise(rng, n = 16) { const v = Array.from({length: (n + 1) * (n + 1)}
   return (x, y) => { const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, a = (u, w) => v[((w % n + n) % n) * (n + 1) + (u % n + n) % n];
     const s = t => t * t * (3 - 2 * t), l = (p, q, t) => p + (q - p) * s(t); return l(l(a(i, j), a(i + 1, j), fx), l(a(i, j + 1), a(i + 1, j + 1), fx), fy); }; }
 const ctIdx = (x, y) => y * CT.W + x;
-const ctPct = () => ct.n0 ? Math.floor((ct.n0 - ct.alive) / ct.n0 * 100) : 0;
+const ctPct = () => ct.n0 ? Math.min(100, Math.floor((ct.n0 - ct.alive) / ct.n0 * 100)) : 0;
 const ctGM = () => CT.G * ct.L.r * ct.L.r * Math.max(.05, ct.alive / ct.n0);
 function ctNew(li = cts.level) {
   const g = ct?.g, img = ct?.img, L = CT_LEVELS[li], rng = seeded(li * 131 + 7), {W, H, CX, CY} = CT;
   ct = renew(ct, {g, img, li, L, mode: 'ready', tick: 0, seen: 0, dead: 0, grid: new Uint8Array(W * H), col: new Uint32Array(W * H), skin: new Uint32Array(W * H), cov: new Uint8Array(W * H), bg: new Uint32Array(W * H), n0: 0, alive: 0,
-    parts: [], shots: [], holes: [], fx: [], ammo: {...L.w}, wsel: CT_WK.find(k => L.w[k]), aim: {x: 30, y: CY, a: 0}, drag: null, charge: -1, idle: 0, shake: 0, flash: 0,
+    parts: [], shots: [], holes: [], fx: [], sand: ctSandOn, ammo: ctSandOn ? Object.fromEntries(CT_WK.map(k => [k, Infinity])) : {...L.w}, wsel: ctSandOn ? 'ast' : CT_WK.find(k => L.w[k]), slow: 0, slowAcc: 0, user: false, aim: {x: 30, y: CY, a: 0}, drag: null, charge: -1, idle: 0, shake: 0, flash: 0,
     stars: 0, record: false, msg: null, keys: new Set(), fired: 0, pulver: false, rng});
   // le ciel : étoiles de trois éclats et un soleil dans le coin, d'où vient la lumière
   ct.bg.fill(ctPack('#0a0818'));
@@ -466,12 +471,16 @@ function ctShotStep(s) {
   if (s.w === 'com' && s.t % 2 === 0) ct.fx.push({x: s.x, y: s.y, dot: 1, t: 0, c: s.dig ? '#ffffff' : '#a0e0ff'});
   return s.x > -80 && s.y > -80 && s.x < CT.W + 80 && s.y < CT.H + 80 && s.t < 900;
 }
-function ctUpdate() {
-
+function ctUpdate() {  // une image ; pendant le ralenti, le monde n'avance qu'une image sur quatre au début, puis reprend peu à peu sa vitesse
+  if (ct.flash > 0) ct.flash = Math.max(0, ct.flash - .04);  // l'éclair passe en temps réel, même au ralenti
+  if (ct.slow > 0) { ct.slow--; ct.slowAcc += .22 + .78 * (1 - ct.slow / CT.SLOW) ** 2; if (ct.slowAcc < 1) return; ct.slowAcc--; }
+  ctStep();
+}
+function ctStep() {
   if (ct.msg && --ct.msg.t <= 0) ct.msg = null;
   // le clavier : flèches = viseur, A / E = angle, Espace maintenu = puissance
-  if (ct.keys.size) { const k = ct.keys, a = ct.aim; a.x = Math.max(2, Math.min(CT.W - 3, a.x + (k.has('R') - k.has('L')) * 1.5)); a.y = Math.max(CT.TOP + 2, Math.min(CT.H - 3, a.y + (k.has('D') - k.has('U')) * 1.5));
-    a.a = Math.max(-1.2, Math.min(1.2, a.a + (k.has('E') - k.has('A')) * .025)); }
+  if (ct.keys.size || ct.pad?.size) { const k = c => ct.keys.has(c) || !!ct.pad?.has(c), a = ct.aim; a.x = Math.max(2, Math.min(CT.W - 3, a.x + (k('R') - k('L')) * 1.5)); a.y = Math.max(CT.TOP + 2, Math.min(CT.H - 3, a.y + (k('D') - k('U')) * 1.5));
+    a.a = Math.max(-1.2, Math.min(1.2, a.a + (k('E') - k('A')) * .025)); }
   if (ct.charge >= 0) ct.charge = Math.min(1, ct.charge + 1 / 50);
   ct.shots = ct.shots.filter(s => {
     s.t++;
@@ -509,10 +518,10 @@ function ctUpdate() {
     return p.ring || p.sucked || p.life < 1800;
   });
   ct.fx = ct.fx.filter(f => ++f.t < (f.R ? 14 : f.hole ? 24 : 20));
-  if (ct.shake > 0) ct.shake = Math.max(0, ct.shake - .3); if (ct.flash > 0) ct.flash = Math.max(0, ct.flash - .04);
+  if (ct.shake > 0) ct.shake = Math.max(0, ct.shake - .3);
   // planète presque finie : elle éclate d'un coup
   if (!ct.pulver && ctPct() >= 92) {
-    ct.pulver = true; ctSound('boom', 1); ct.shake = 8; ct.flash = 1;
+    ct.pulver = true; ctSound('boom', 1); ctSound('hole'); ct.shake = 8; ct.flash = 1; ct.slow = CT.SLOW;  // le noyau explose : ralenti
     for (let i = 0; i < ct.grid.length; i++) if (ct.grid[i]) { const x = i % W - CT.CX, y = Math.floor(i / W) - CT.CY, d = Math.hypot(x, y) || 1, s = 1.6 + ct.rng() * 2.4; ctTear(i, x / d * s, y / d * s, 1); }
   }
   // fin : plus de munitions, plus rien en vol, et les débris ont eu le temps de retomber
@@ -521,6 +530,7 @@ function ctUpdate() {
 }
 function ctEnd() {
   const p = ctPct(), L = ct.L; ct.mode = 'over'; ct.dead = 0;
+  if (ct.sand) { ct.stars = 0; ctSound('win'); return; }  // le bac à sable ne compte rien
   ct.stars = L.goals.filter(g => p >= g).length; cts.games++;
   if (p > (cts.best[ct.li] ?? -1)) { ct.record = cts.best[ct.li] != null; cts.best[ct.li] = p; }
   if (ct.stars > (cts.stars[ct.li] || 0)) cts.stars[ct.li] = ct.stars;
@@ -603,30 +613,31 @@ function ctDraw() {
   }
   g.restore();
   if (ct.flash > 0) { g.fillStyle = 'rgba(255,240,200,' + (ct.flash * .5).toFixed(2) + ')'; g.fillRect(0, 0, W, H); }
+  if (ct.slow > 0) { const b = Math.round(10 * Math.min(1, ct.slow / 30, (CT.SLOW - ct.slow) / 12)); px(g, '#000000', 0, TOP, W, b); px(g, '#000000', 0, H - b, W, b); }  // le ralenti : deux bandes noires, comme au cinéma
   // en haut : le nom, la jauge de destruction avec les marques des étoiles ; en bas : les armes
   px(g, '#140e20', 0, 0, W, TOP); px(g, '#2a2038', 0, TOP - 1, W, 1);
   pxFont(g, (ct.li + 1) + '. ' + ct.L.name.toUpperCase(), 3, 10, '#ffd84a', 8);
   const p = ctPct(), gx = 92, gw = 110;
   px(g, '#05010b', gx - 1, 3, gw + 2, 8); px(g, '#2a2038', gx, 4, gw, 6); px(g, p >= ct.L.goals[0] ? '#ff8a2a' : '#c04a3a', gx, 4, Math.round(gw * p / 100), 6); px(g, '#ffd0a0', gx, 4, Math.round(gw * p / 100), 1);
-  ct.L.goals.forEach((v, k) => { const x = gx + Math.round(gw * v / 100); px(g, p >= v ? '#ffd84a' : '#ffffff', x, 2, 1, 10); });
+  if (!ct.sand) ct.L.goals.forEach((v, k) => { const x = gx + Math.round(gw * v / 100); px(g, p >= v ? '#ffd84a' : '#ffffff', x, 2, 1, 10); });
   pxFont(g, p + ' %', W - 3, 10, '#ffffff', 8, 'right');
-  CT_WK.forEach((w, k) => { if (ct.L.w[w] == null) return; const x = 3 + CT_WK.filter(q => ct.L.w[q] != null).indexOf(w) * 30, y = H - 13, on = ct.wsel === w, n = ct.ammo[w];
+  CT_WK.forEach((w, k) => { if (!ctHas(w)) return; const x = 3 + CT_WK.filter(ctHas).indexOf(w) * 30, y = H - 13, on = ct.wsel === w, n = ct.ammo[w];
     px(g, on ? '#ffd84a' : '#2a2038', x, y, 28, 12); px(g, n ? (on ? '#3a2a18' : '#140e20') : '#0a0810', x + 1, y + 1, 26, 10);
     sprite(g, CT_ICON[w], x + 3, y + 3, n ? CT_IPAL : {k: '#2a2038', a: '#2a2038', A: '#3a3048', d: '#2a2038', w: '#3a3048', W: '#3a3048', r: '#3a3048', o: '#3a3048'});
-    pxFont(g, '×' + n, x + 25, y + 10, n ? '#ffffff' : '#5a5068', 7, 'right'); });
+    pxFont(g, n === Infinity ? '∞' : '×' + n, x + 25, y + 10, n ? '#ffffff' : '#5a5068', 7, 'right'); });
   if (ct.msg) pxFont(g, ct.msg.txt, W / 2, H - 18, '#ffffff', 7, 'center');
   if (ct.mode === 'ready') {
-    gameText(g, W, [[(ct.li + 1) + '. ' + ct.L.name.toUpperCase(), '#ffd84a', 12], [CT_WK.filter(w => ct.L.w[w]).map(w => ct.L.w[w] + ' ' + CT_W[w].toLowerCase() + (ct.L.w[w] > 1 ? 's' : '')).join(' · ').replace('trou noirs', 'trous noirs'), '#ffffff'],
-      ['Étoiles : ' + ct.L.goals.join(' · ') + ' % détruits', '#ffd84a'], ['Glisse depuis l\'espace pour lancer', '#b8d0ff'], ['← → : planète · Espace : commencer', '#b8b0c8']], 44);
+    gameText(g, W, [[(ct.li + 1) + '. ' + ct.L.name.toUpperCase(), '#ffd84a', 12], ct.sand ? ['BAC À SABLE : toutes les armes à volonté', '#ffffff'] : [CT_WK.filter(w => ct.L.w[w]).map(w => ct.L.w[w] + ' ' + CT_W[w].toLowerCase() + (ct.L.w[w] > 1 ? 's' : '')).join(' · ').replace('trou noirs', 'trous noirs'), '#ffffff'],
+      ct.sand ? ['Ni étoiles ni record', '#ffd84a'] : ['Étoiles : ' + ct.L.goals.join(' · ') + ' % détruits', '#ffd84a'], ['Glisse depuis l\'espace pour lancer', '#b8d0ff'], ['← → : planète · Espace : commencer', '#b8b0c8']], 44);
   }
   if (ct.mode === 'pause') gameText(g, W, [['PAUSE', '#ffd84a', 12], ['Entrée : reprendre', '#b8b0c8']], 70);
   if (ct.mode === 'over' && ct.dead > 20) {
     gameText(g, W, [[ct.pulver ? 'PLANÈTE PULVÉRISÉE !' : ct.stars ? 'PLANÈTE DÉTRUITE !' : 'ELLE RÉSISTE ENCORE...', ct.stars ? '#ffd84a' : '#ff8a6a', 12], [p + ' % détruits' + (ct.record ? ' · RECORD !' : ''), '#ffffff'], ['', ''],
-      [ct.stars ? '' : 'Il faut ' + ct.L.goals[0] + ' % pour la première étoile', '#b8d0ff'], [ct.dead > 50 ? 'Espace : rejouer · ← → : planète' : '', '#b8b0c8']], 50);
-    ctStars(g, ct.stars, W / 2 - 25, 71);
+      [ct.stars || ct.sand ? '' : 'Il faut ' + ct.L.goals[0] + ' % pour la première étoile', '#b8d0ff'], [ct.dead > 50 ? 'Espace : rejouer · ← → : planète' : '', '#b8b0c8']], 50);
+    if (!ct.sand) ctStars(g, ct.stars, W / 2 - 25, 71);
   }
   if (ct.tick % 15 === 0) g.canvas.setAttribute('aria-label', 'Cataclysme, planète ' + ct.L.name + ' : ' + {ready: 'prête', play: 'en jeu', pause: 'pause', over: 'fini'}[ct.mode] + ', ' + p + ' % détruits, arme ' + CT_W[ct.wsel] +
-    ', reste ' + CT_WK.filter(w => ct.L.w[w] != null).map(w => ct.ammo[w] + ' ' + CT_W[w]).join(', ') + ', ' + ct.parts.length + ' débris' + (ct.mode === 'over' ? ', ' + ct.stars + ' étoiles' : '') + '.');
+    ', reste ' + CT_WK.filter(ctHas).map(w => (ct.ammo[w] === Infinity ? 'à volonté' : ct.ammo[w]) + ' ' + CT_W[w]).join(', ') + (ct.sand ? ', bac à sable' : '') + ', ' + ct.parts.length + ' débris' + (ct.mode === 'over' ? ', ' + ct.stars + ' étoiles' : '') + '.');
 }
 function ctInfo() {
   const li = ct ? ct.li : cts.level, L = CT_LEVELS[li];
@@ -636,7 +647,7 @@ function ctInfo() {
 const CT_KEYS = {ArrowUp: 'U', ArrowDown: 'D', ArrowLeft: 'L', ArrowRight: 'R', a: 'A', A: 'A', q: 'A', Q: 'A', e: 'E', E: 'E'};
 function ctPick(dir) { let li = ct.li; do li = (li + dir + CT_LEVELS.length) % CT_LEVELS.length; while (!ctUnlocked(li)); cts.level = li; saveGames(); ctNew(li); }
 function ctStart() { if (ct.mode === 'over') ctNew(ct.li); ct.mode = 'play'; }
-function ctWeapon(w) { if (ct.L.w[w] == null) return; if (!ct.ammo[w]) { ctSay('Plus de ' + CT_W[w].toLowerCase() + ' !'); return; } ct.wsel = w; ctSound('pick'); }
+function ctWeapon(w) { if (!ctHas(w)) return; if (!ct.ammo[w]) { ctSay('Plus de ' + CT_W[w].toLowerCase() + ' !'); return; } ct.wsel = w; ctSound('pick'); }
 document.addEventListener('keydown', e => {
   if (!view.classList.contains('on') || !ct || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
   const k = e.key;
@@ -646,27 +657,48 @@ document.addEventListener('keydown', e => {
     if ((k === ' ' || k === 'Enter') && ok) { e.preventDefault(); ctStart(); }
     return;
   }
-  if (k === 'p' || k === 'P' || k === 'Escape') { ct.mode = ct.mode === 'play' ? 'pause' : 'play'; return; }
-  if (k === 'Enter' && ct.mode === 'pause') { ct.mode = 'play'; return; }
+  if (k === 'p' || k === 'P' || k === 'Escape') { ctPause(ct.mode === 'play'); return; }
+  if (k === 'Enter' && ct.mode === 'pause') { ctPause(false); return; }
   if (ct.mode !== 'play') return;
-  const live = CT_WK.filter(w => ct.L.w[w] != null);
+  const live = CT_WK.filter(ctHas);
   if (/^[1-4]$/.test(k) && live[k - 1]) { ctWeapon(live[k - 1]); return; }
-  if (k === 'Tab') { e.preventDefault(); const i = live.indexOf(ct.wsel); for (let j = 1; j <= live.length; j++) if (ct.ammo[live[(i + j) % live.length]]) { ctWeapon(live[(i + j) % live.length]); break; } return; }
-  if (k === ' ') { e.preventDefault(); ct.kb = true; if (e.repeat) return;
-    if (ct.wsel === 'hole') ctFire(ct.aim.x, ct.aim.y, 0, 0) || ctSay('Pas ici'); else ct.charge = 0; return; }
+  if (k === 'Tab') { e.preventDefault(); ctNextWeapon(); return; }
+  if (k === ' ') { e.preventDefault(); if (!e.repeat) ctChargeDown(); return; }
   if (CT_KEYS[k]) { e.preventDefault(); ct.kb = true; ct.keys.add(CT_KEYS[k]); }
 });
 document.addEventListener('keyup', e => {
   if (!ct) return; if (CT_KEYS[e.key]) ct.keys.delete(CT_KEYS[e.key]);
-  if (e.key === ' ' && ct.charge >= 0) { const [vx, vy] = ctKeyVel(ct.charge); ct.charge = -1; ctFire(ct.aim.x, ct.aim.y, vx, vy) || ctSay('Le viseur est dans la planète'); }
+  if (e.key === ' ') ctChargeUp();
 });
+function ctPause(on) { ct.mode = on ? 'pause' : 'play'; ct.user = on; }  // une pause voulue reste ; celle du changement d'onglet se lève au retour
+function ctNextWeapon() { const live = CT_WK.filter(ctHas), i = live.indexOf(ct.wsel); for (let j = 1; j <= live.length; j++) if (ct.ammo[live[(i + j) % live.length]]) { ctWeapon(live[(i + j) % live.length]); break; } }
+function ctChargeDown() { ct.kb = true; if (ct.wsel === 'hole') ctFire(ct.aim.x, ct.aim.y, 0, 0) || ctSay('Pas ici'); else ct.charge = 0; }
+function ctChargeUp() { if (ct.charge < 0) return; const [vx, vy] = ctKeyVel(ct.charge); ct.charge = -1; ctFire(ct.aim.x, ct.aim.y, vx, vy) || ctSay('Le viseur est dans la planète'); }
+// la manette : stick gauche ou croix pour le viseur, stick droit ou LB / RB pour l'angle, A maintenu pour la puissance (relâché : tir), X pour l'arme suivante, Start pour la pause ;
+// avant la partie et à la fin : gauche / droite pour la planète, A ou Start pour commencer
+{ let prev = [];
+  const loop = () => { requestAnimationFrame(loop); if (!view.classList.contains('on') || !ct) return;
+    const p = [...(navigator.getGamepads?.() || [])].find(Boolean); if (!p) return;
+    const b = i => !!p.buttons[i]?.pressed, [lx = 0, ly = 0, rx = 0] = p.axes;
+    const now = [b(14) || lx < -.4, b(15) || lx > .4, b(12) || ly < -.4, b(13) || ly > .4, b(4) || rx < -.4, b(5) || rx > .4, b(0), b(2), b(9)], hit = i => now[i] && !prev[i];
+    ct.pad ??= new Set(); ct.pad.clear();
+    if (ct.mode === 'ready' || (ct.mode === 'over' && ct.dead > 50)) { if (hit(0) || hit(1)) ctPick(hit(0) ? -1 : 1); else if (hit(6) || hit(8)) ctStart(); }
+    else if (ct.mode === 'pause') { if (hit(8) || hit(6)) ctPause(false); }
+    else if (ct.mode === 'play') {
+      ['L', 'R', 'U', 'D', 'A', 'E'].forEach((c, i) => { if (now[i]) ct.pad.add(c); }); if (now.slice(0, 6).some(Boolean)) ct.kb = true;
+      if (hit(6)) ctChargeDown(); if (prev[6] && !now[6]) ctChargeUp(); if (hit(7)) ctNextWeapon(); if (hit(8)) ctPause(true);
+    }
+    prev = now; };
+  requestAnimationFrame(loop); }
+$('ctFs').onclick = () => { $('ctFs').blur(); if (document.fullscreenElement) document.exitFullscreen(); else $('ctCanvas').parentElement.requestFullscreen?.().catch(() => {}); };
+$('ctSand').onclick = () => { ctSandOn = !ctSandOn; $('ctSand').textContent = 'BAC À SABLE : ' + (ctSandOn ? 'OUI' : 'NON'); $('ctSand').setAttribute('aria-pressed', String(ctSandOn)); $('ctSand').blur(); ctNew(ctUnlocked(ct?.li ?? 0) ? ct?.li ?? 0 : 0); };
 { const cv = $('ctCanvas'), at = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * CT.W, (e.clientY - r.top) / r.height * CT.H]; };
   // à la souris ou au doigt : on appuie dans l'espace, on tire en arrière comme un lance-pierre, on lâche ; un simple clic vise le centre
   cv.onpointerdown = e => {
     e.preventDefault(); if (!ct) return;
     if (ct.mode === 'ready' || (ct.mode === 'over' && ct.dead > 50)) return ctStart();
     if (ct.mode !== 'play') return;
-    const [x, y] = at(e), live = CT_WK.filter(w => ct.L.w[w] != null);
+    const [x, y] = at(e), live = CT_WK.filter(ctHas);
     if (y > CT.H - 14 && x < 3 + live.length * 30) return ctWeapon(live[Math.floor((x - 3) / 30)] || ct.wsel);
     ct.kb = false; ct.drag = {x0: x, y0: y, x, y}; try { cv.setPointerCapture(e.pointerId); } catch {}
   };
@@ -693,6 +725,7 @@ function ctBot(li, seed = 1) {
   }
   return ctPct();
 }
+let ctCheckResult = 'pas encore';
 setTimeout(() => {  // vérification, 2 s après le chargement pour ne pas retarder l'ouverture : chaque planète est bien construite, un astéroïde creuse, les débris lents se recollent, la bombe attend puis explose,
    // le trou noir avale, la comète creuse plus loin qu'un astéroïde (le joueur automatique, lui, est essayé par le simulateur)
   const bad = [], keep = ct, keepS = JSON.stringify(cts); ct = null;
@@ -711,12 +744,18 @@ setTimeout(() => {  // vérification, 2 s après le chargement pour ne pas retar
   ctNew(4); ct.mode = 'play'; ct.wsel = 'hole'; const a2 = ct.alive; ctFire(CT.CX, CT.CY - 20, 0, 0); for (let i = 0; i < 270; i++) ctUpdate(); if (ct.holes.length || a2 - ct.alive < 300) bad.push('le trou noir n\'avale pas');
   const dig = w => { ctNew(1); ct.mode = 'play'; ct.wsel = w; ctFire(CT.CX - 70, CT.CY, CT.VMAX / (w === 'com' ? 1.35 : 1), 0); let far = 0; for (let i = 0; i < 120; i++) { ctUpdate(); for (let x = CT.CX - ct.L.r; x < CT.CX + ct.L.r; x++) if (!ct.grid[ctIdx(x, CT.CY)]) far = Math.max(far, x); } return far; };
   if (dig('com') <= dig('ast')) bad.push('la comète ne creuse pas plus loin');
-  console.assert(!bad.length, 'cataclysme', bad);
+  ctSandOn = true; ctNew(0); ct.mode = 'play'; for (let i = 0; i < 8; i++) { ct.wsel = CT_WK[i % 4]; ctFire(CT.CX - 70, CT.CY, CT.VMAX, 0); } if (ct.ammo.ast !== Infinity || ct.holes.length + ct.shots.length < 8) bad.push('bac à sable : armes à volonté');
+  ct.alive = Math.floor(ct.n0 * .05); ct.shots = []; ct.holes = []; let steps = 0; ctUpdate(); if (!ct.slow) bad.push('pas de ralenti'); for (let i = 0; i < 40; i++) { const before = ct.parts.length ? ct.parts[0].x : 0; ctUpdate(); if (ct.parts.length && ct.parts[0].x !== before) steps++; }
+  if (steps > 20) bad.push('le ralenti ne ralentit pas (' + steps + ' / 40)'); for (let i = 0; i < 600 && ct.mode === 'play'; i++) ctUpdate(); if (ct.mode !== 'over' || cts.best[0] !== JSON.parse(keepS).best[0]) bad.push('le bac à sable compte un record'); ctSandOn = false;
+  console.assert(!bad.length, 'cataclysme', bad); ctCheckResult = bad.length ? bad.join(', ') : 'ok';
   Object.assign(cts, JSON.parse(keepS)); for (const k of Object.keys(cts)) if (!(k in JSON.parse(keepS))) delete cts[k];
   ct = keep; ctMute = false; if (ct) ctInfo();
 }, 2000);
-ctx.onOpen(() => {
+function ctOpen() {
   if (!ct || !ct.g) { ctNew(ctUnlocked(cts.level) ? cts.level : 0); ct.g = $('ctCanvas').getContext('2d'); }
+  if (ct.mode === 'pause' && !ct.user) ct.mode = 'play';  // retour sur l'onglet : la partie reprend toute seule, sauf pause demandée
   gameLoop(ct, 'cataclysme', ctUpdate, ctDraw); ctInfo();
-});
+}
+$('ctCanvas').__ct = {st: () => ct, open: ctOpen, check: () => ctCheckResult, CT};  // pour l'auto-test
+ctx.onOpen(ctOpen);
 }
