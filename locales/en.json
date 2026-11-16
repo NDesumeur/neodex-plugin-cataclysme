@@ -113,5 +113,14 @@
   "BAC À SABLE : OUI": "SANDBOX: ON",
   "BAC À SABLE : toutes les armes à volonté": "SANDBOX: every weapon at will",
   "Ni étoiles ni record": "No stars, no record",
-  "à volonté": "at will"
+  "à volonté": "at will",
+  ", bac à sable": ", sandbox",
+  "BAC À SABLE :": "SANDBOX:",
+  "OUI": "YES",
+  "NON": "NO",
+  "pas encore": "not yet",
+  "bac à sable : armes à volonté": "sandbox: unlimited weapons",
+  "pas de ralenti": "no slow motion",
+  "le ralenti ne ralentit pas (": "slow motion does not slow down (",
+  "le bac à sable compte un record": "the sandbox counts a record"
 }
