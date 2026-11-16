@@ -1,9 +1,9 @@
 {
   "pluginId": "neodex.cataclysme",
   "repo": "NDesumeur/neodex-plugin-cataclysme",
-  "version": "1.1.0",
-  "sha256": "fc1c886fcf627ba3f95686c3d5afc04f35dcef7a593e3a33ea1fd29753d75bf5",
-  "approvedAt": "2026-11-16T04:14:34.541Z",
+  "version": "1.1.1",
+  "sha256": "88d89771d51fb7155b8b3490be388f250fc89f5c6a1e42130e107c714a11531b",
+  "approvedAt": "2026-11-16T16:38:47.581Z",
   "neobase": ">=4.0.0",
-  "signature": "AtxnzyIZR9fLe3sEvwR9AXEx8qASYCnObmFCdLTFTlWELsupg50XxpHjk2FRRHKEnxtr0QT8yZvphmOpEeDZBQ=="
+  "signature": "4y0Hoqw7AXDzIdkGb5680v/P92DbJ0jmsoliQqFK65xDk4NaV6YFnwO+TmDRNr1t9vwPJQ5/sMVi257mkfkACw=="
 }
