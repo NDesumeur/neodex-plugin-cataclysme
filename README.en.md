@@ -4,6 +4,15 @@ A pixel art planet destruction game: each planet is made of thousands of pixels,
 
 *Version française : [README.md](README.md)*
 
+
+## New weapons and inhabited planets (new in 1.2.0)
+
+- **Orbital laser**: a straight beam that digs a line toward the core.
+- **Virus**: it eats the crust bit by bit (not water, lava or the core).
+- **Moon**: another planet crashing in, with a huge crater and its rocks flying apart.
+- Three more planets: **Gaia** and **Metropolis**, inhabited (their cities light up on the night side and go dark when their ground is gone), and **Twin**.
+- Water and lava now flow into the craters.
+
 ## Controls
 
 - **Mouse or finger**: press in space, pull back like a slingshot and let go. The dotted line shows the path, bent by gravity. A simple click launches straight at the center.

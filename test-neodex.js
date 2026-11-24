@@ -44,6 +44,13 @@ module.exports = async ({ pj, sleep }) => {
   const slow = await C('return ct.slow;'); if (!(slow > 0)) throw new Error('pas de ralenti quand la planète éclate : ' + JSON.stringify(await C('return {m: ct.mode, p: ct.pulver, a: ct.alive, n: ct.n0, s: ct.slow, sand: ct.sand};')));
   const chk = await C('return T.check();'); if (chk !== 'ok') throw new Error('vérification : ' + chk);
   await pj(`document.getElementById('ctSand').click(), 0`); await sleep(200);
+  // Gaïa : ses villes allumées, puis le laser (touche 2) et le virus (touche 3) ; et le joueur automatique sur les trois nouvelles planètes
+  const key = k => pj(`document.dispatchEvent(new KeyboardEvent('keydown', {key: '${k}', bubbles: true})), 0`);
+  await C('T.go(7); ct.tick = 200; return 0;'); await sleep(500); await shot('5-gaia');
+  await key('2'); await ptr('pointerdown', 40, 82); await ptr('pointermove', -10, 82); await ptr('pointerup', -10, 82); await sleep(400);
+  await key('3'); await ptr('pointerdown', 200, 50); await ptr('pointermove', 250, 30); await ptr('pointerup', 250, 30); await sleep(900); await shot('6-laser-virus');
+  const used = await C('return ct.ammo.laser + ":" + ct.ammo.virus;'); if (used !== '1:1') throw new Error('laser et virus au clavier : ' + used);
+  const bots = await C('return [7, 8, 9].map(li => T.bot(li, 3)).join(" / ");'); const botsTxt = ' · automatique ' + bots;
   const errs = await pj(`window.__e.join(' | ')`); if (errs) throw new Error('erreur : ' + errs);
   // plein écran, et la zone de jeu qui tient dans la fenêtre
   await pj(`document.getElementById('ctFs').click(), 0`); await sleep(700);
@@ -53,5 +60,5 @@ module.exports = async ({ pj, sleep }) => {
   const L = await pj(`(() => { const r = document.getElementById('ctCanvas').getBoundingClientRect(); let s = 0; for (let e = document.getElementById('ctCanvas').parentElement; e; e = e.parentElement) s += e.scrollTop; return { bottom: Math.round(r.bottom + s), h: Math.round(r.height), wh: innerHeight, ww: innerWidth, sw: document.documentElement.scrollWidth }; })()`);
   if (process.env.NEO_FIT_LOG) console.log('FIT', JSON.stringify(L));
   if (L.bottom > L.wh + 1 || L.sw > L.ww + 1 || L.h < 200) throw new Error('la zone de jeu dépasse la fenêtre ou reste petite : ' + JSON.stringify(L));
-  return 'vérification ok · ' + m[1] + ' % au lance-pierre · manette · reprise au retour · bac à sable · ralenti · plein écran · ' + L.h + ' px dans ' + L.ww + '×' + L.wh;
+  return 'vérification ok' + botsTxt + ' · ' + m[1] + ' % au lance-pierre · manette · reprise au retour · bac à sable · ralenti · plein écran · ' + L.h + ' px dans ' + L.ww + '×' + L.wh;
 };

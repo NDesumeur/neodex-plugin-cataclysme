@@ -4,6 +4,15 @@ Un jeu de destruction de planètes en pixel art : chaque planète est faite de m
 
 *English version: [README.en.md](README.en.md)*
 
+
+## Nouvelles armes et planètes habitées (nouveau en 1.2.0)
+
+- **Laser orbital** : un rayon tout droit qui creuse une ligne vers le cœur.
+- **Virus** : il ronge la croûte de proche en proche (pas l'eau, la lave ni le noyau).
+- **Lune** : une autre planète qui s'écrase, avec un cratère énorme et ses roches en éclats.
+- Trois planètes de plus : **Gaïa** et **Métropole**, habitées (leurs villes s'allument du côté de la nuit et s'éteignent quand leur sol part), et **Jumelle**.
+- L'eau et la lave coulent maintenant dans les cratères.
+
 ## Commandes
 
 - **À la souris ou au doigt** : appuie dans l'espace, tire en arrière comme un lance-pierre et lâche. Les pointillés montrent la trajectoire, courbée par la gravité. Un simple clic lance droit vers le centre.
