@@ -1,7 +1,7 @@
 {
   "id": "neodex.cataclysme",
   "name": "Cataclysme",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "NDesumeur",
   "description": "Jeu de destruction de planètes en pixel art : chaque planète est faite de milliers de pixels (croûte, roche, magma, noyau) et chaque pixel arraché devient un débris soumis à la gravité. Astéroïdes, comètes qui traversent, bombes à retardement et trous noirs, en quantité limitée : sept planètes à détruire, trois étoiles chacune. Plein écran, manette, mode bac à sable (toutes les armes à volonté), ralenti quand la planète éclate. Laser orbital, virus et lune ; des planètes habitées dont les villes s'allument ; l'eau et la lave coulent dans les cratères.",
   "icon": "icon.png",
@@ -22,5 +22,57 @@
   "sdk": "2.1.0",
   "permissions": [
     "storage"
+  ],
+  "succes": [
+    {
+      "id": "premier",
+      "nom": "Première fissure",
+      "texte": "Réussir une première planète"
+    },
+    {
+      "id": "p5",
+      "nom": "Briseur de mondes",
+      "texte": "Réussir 5 planètes différentes"
+    },
+    {
+      "id": "toutes",
+      "nom": "Fin du système",
+      "texte": "Réussir les 10 planètes"
+    },
+    {
+      "id": "etoiles3",
+      "nom": "Destruction totale",
+      "texte": "Obtenir 3 étoiles sur une planète"
+    },
+    {
+      "id": "etoiles",
+      "nom": "Trente étoiles",
+      "texte": "Obtenir 3 étoiles sur toutes les planètes",
+      "cache": true
+    },
+    {
+      "id": "p90",
+      "nom": "Poussière d'étoile",
+      "texte": "Détruire 90 % d'une planète"
+    },
+    {
+      "id": "vingt",
+      "nom": "Habitué du chaos",
+      "texte": "Jouer 20 parties"
+    }
+  ],
+  "records": [
+    {
+      "id": "etoiles",
+      "nom": "Étoiles",
+      "sens": "haut",
+      "format": "nombre"
+    },
+    {
+      "id": "destruction",
+      "nom": "Plus forte destruction",
+      "sens": "haut",
+      "format": "pourcent"
+    }
   ]
 }

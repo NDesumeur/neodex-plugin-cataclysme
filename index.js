@@ -301,6 +301,9 @@ export default async function (ctx) {
   const best = (k, v) => { const b = games.best[k]; if (v > (b ?? 0)) {  // un score nul n'est jamais un record
     games.best[k] = v; saveGames(); return true; } return false; };
   const gstore = (k, init) => (games[k] ??= init);
+  // les trophées de NeoDex (3.4.8 et plus) : succès et records déclarés dans plugin.json ; sur un NeoDex plus ancien, rien ne se passe
+  const trophy = id => { ctx.games?.unlock(id).catch(() => {}); };
+  const trophyRecord = (id, v) => { if (v != null && Number.isFinite(+v)) ctx.games?.record(id, +v).catch(() => {}); };
 function gameLoop(st, appKey, update, draw) {
   cancelAnimationFrame(st.raf);
   const STEP = 1000 / 60; let acc = 0, last = performance.now();
@@ -713,6 +716,7 @@ function ctDraw() {
     ', reste ' + CT_WK.filter(ctHas).map(w => (ct.ammo[w] === Infinity ? 'à volonté' : ct.ammo[w]) + ' ' + CT_W[w]).join(', ') + (ct.sand ? ', bac à sable' : '') + ', ' + ct.parts.length + ' débris' + (ct.mode === 'over' ? ', ' + ct.stars + ' étoiles' : '') + '.');
 }
 function ctInfo() {
+  setTimeout(ctTrophies);
   const li = ct ? ct.li : cts.level, L = CT_LEVELS[li];
   $('ctStats').replaceChildren(...[['Planète', (li + 1) + '. ' + L.name], ['Record', cts.best[li] != null ? cts.best[li] + ' %' : '--'], ['Étoiles', (cts.stars[li] || 0) + ' / 3'], ['Pour 3 étoiles', L.goals[2] + ' %'],
     ['Planètes détruites', cts.wins], ['Villes éteintes', cts.cities || 0], ['Étoiles en tout', Object.values(cts.stars).reduce((a, b) => a + b, 0) + ' / ' + CT_LEVELS.length * 3]].flatMap(([a, c]) => [el('span', '', a), el('b', '', String(c))]));
@@ -843,5 +847,13 @@ function ctOpen() {
   gameLoop(ct, 'cataclysme', ctUpdate, ctDraw); ctInfo();
 }
 $('ctCanvas').__ct = {st: () => ct, open: ctOpen, check: () => ctCheckResult, CT, bot: ctBot, go: li => { ctNew(li); ct.mode = 'play'; }};  // pour l'auto-test
+// les trophées, tirés des statistiques et des records gardés (aussi à l'ouverture : ce qui a été fait avant compte)
+function ctTrophies() {
+  const s = CT_LEVELS.map((_, i) => cts.stars[i] || 0), n = s.reduce((a, x) => a + x, 0), won = s.filter(x => x > 0).length, top = Math.max(-1, ...Object.values(cts.best));
+  const sig = [cts.games, n, top].join(); if (sig === ctTrophies.sig) return; ctTrophies.sig = sig;
+  trophyRecord('etoiles', n || null); trophyRecord('destruction', top >= 0 ? top : null);
+  if (won >= 1) trophy('premier'); if (won >= 5) trophy('p5'); if (won >= CT_LEVELS.length) trophy('toutes');
+  if (s.some(x => x >= 3)) trophy('etoiles3'); if (s.every(x => x >= 3)) trophy('etoiles'); if (top >= 90) trophy('p90'); if (cts.games >= 20) trophy('vingt');
+}
 ctx.onOpen(ctOpen);
 }
